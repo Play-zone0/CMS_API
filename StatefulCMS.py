@@ -9,8 +9,23 @@ from sqlalchemy.orm import sessionmaker, Session
 # DATABASE_URL = "postgresql://postgres:postgres@localhost/claims_management"
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:fOyZrFtoKaZXvLoKFSqKwIFGTNxbClWM@viaduct.proxy.rlwy.net:16104/railway")
-engine = create_engine(DATABASE_URL)
+# DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:fOyZrFtoKaZXvLoKFSqKwIFGTNxbClWM@viaduct.proxy.rlwy.net:16104/railway")
+# engine = create_engine(DATABASE_URL)
+import os
+from urllib.parse import quote_plus
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# If using Railway's PostgreSQL, we need to modify the URL
+if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+    # Create SQLAlchemy engine with proper connection handling
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_pre_ping=True
+    )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -164,6 +179,10 @@ def delete_claim(claim_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Claim deleted"}
 
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
