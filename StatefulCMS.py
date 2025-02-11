@@ -1,17 +1,12 @@
-import datetime
-
 from fastapi import FastAPI, HTTPException, Depends
 from typing import List
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from config import PORT, DATABASE_URL
-# Database setup
-# DATABASE_URL = "postgresql://postgres:postgres@localhost/claims_management"
-import os
 
-# DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:fOyZrFtoKaZXvLoKFSqKwIFGTNxbClWM@viaduct.proxy.rlwy.net:16104/railway")
+# Database setup
+DATABASE_URL = "postgresql://postgres:postgres@localhost/claims_management"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -40,11 +35,6 @@ class ClaimDB(Base):
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 app = FastAPI()
 
 def get_db():
@@ -72,22 +62,6 @@ class Claim(BaseModel):
     amount_claimed: float
     status: str
 
-@app.get("/")
-async def root():
-    logger.info("Root endpoint called")
-    return {"status": "online", "timestamp": datetime.now().isoformat()}
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info(f"Starting application on port {PORT}")
-    try:
-        # Test database connection
-        with engine.connect() as conn:
-            conn.execute("SELECT 1")
-        logger.info("Database connection successful")
-    except Exception as e:
-        logger.error(f"Database connection failed: {str(e)}")
-        raise
 # CRUD Operations
 @app.post("/policyholder/")
 def create_policyholder(holder: Policyholder, db: Session = Depends(get_db)):
@@ -187,10 +161,6 @@ def delete_claim(claim_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Claim deleted"}
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-# if __name__ == "__main__":
-#     import uvicorn
-#     port = int(os.getenv("PORT", 8000))
-#     uvicorn.run(app, host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
