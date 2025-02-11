@@ -4,28 +4,13 @@ from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-
+from config import PORT, DATABASE_URL
 # Database setup
 # DATABASE_URL = "postgresql://postgres:postgres@localhost/claims_management"
 import os
 
 # DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:fOyZrFtoKaZXvLoKFSqKwIFGTNxbClWM@viaduct.proxy.rlwy.net:16104/railway")
-# engine = create_engine(DATABASE_URL)
-import os
-from urllib.parse import quote_plus
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-# If using Railway's PostgreSQL, we need to modify the URL
-if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
-    # Create SQLAlchemy engine with proper connection handling
-    engine = create_engine(
-        DATABASE_URL,
-        pool_size=5,
-        max_overflow=10,
-        pool_timeout=30,
-        pool_pre_ping=True
-    )
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -52,6 +37,11 @@ class ClaimDB(Base):
 
 # Create tables
 Base.metadata.create_all(bind=engine)
+
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -80,6 +70,22 @@ class Claim(BaseModel):
     amount_claimed: float
     status: str
 
+@app.get("/")
+async def root():
+    logger.info("Root endpoint called")
+    return {"status": "online", "timestamp": datetime.now().isoformat()}
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info(f"Starting application on port {PORT}")
+    try:
+        # Test database connection
+        with engine.connect() as conn:
+            conn.execute("SELECT 1")
+        logger.info("Database connection successful")
+    except Exception as e:
+        logger.error(f"Database connection failed: {str(e)}")
+        raise
 # CRUD Operations
 @app.post("/policyholder/")
 def create_policyholder(holder: Policyholder, db: Session = Depends(get_db)):
