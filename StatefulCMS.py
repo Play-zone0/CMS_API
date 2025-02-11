@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import FastAPI, HTTPException, Depends
 from typing import List
 from pydantic import BaseModel
@@ -188,7 +190,7 @@ def delete_claim(claim_id: int, db: Session = Depends(get_db)):
 # if __name__ == "__main__":
 #     import uvicorn
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+# if __name__ == "__main__":
+#     import uvicorn
+#     port = int(os.getenv("PORT", 8000))
+#     uvicorn.run(app, host="0.0.0.0", port=port)
