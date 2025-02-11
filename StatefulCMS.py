@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 # DATABASE_URL = "postgresql://postgres:postgres@localhost/claims_management"
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/claims_management")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:fOyZrFtoKaZXvLoKFSqKwIFGTNxbClWM@viaduct.proxy.rlwy.net:16104/railway")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
